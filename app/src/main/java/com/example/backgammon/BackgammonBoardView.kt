@@ -209,6 +209,25 @@ class BackgammonBoardView @JvmOverloads constructor(
         }
     }
 
+    private fun movePosition(dice1Value: Int, dice2Value: Int, fromPosition: Int, ) {
+        var positionOne= boardState[fromPosition+dice1Value]
+        var positionTwo= boardState[fromPosition+dice2Value]
+        var positionThree= boardState[fromPosition+dice1Value+dice2Value]
+        val threePosition = arrayOfNulls<Pair>(3)
+
+        if (positionOne.first < 2 || boardState[fromPosition].second == positionOne.second) {
+            threePosition[0] = positionOne
+        }
+        if (positionTwo.first < 2 || boardState[fromPosition].second == positionOne.second) {
+            threePosition[1] = positionTwo
+        }
+        if (positionThree.first < 2 || boardState[fromPosition].second == positionOne.second) {
+            threePosition[2] = positionThree
+        }
+
+
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x
         val y = event.y
