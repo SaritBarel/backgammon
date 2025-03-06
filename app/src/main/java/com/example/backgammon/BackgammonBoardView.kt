@@ -1,5 +1,6 @@
 package com.example.backgammon
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -7,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
@@ -50,6 +52,7 @@ class BackgammonBoardView @JvmOverloads constructor(
         dice2Value = (1..6).random()  // הגרלת ערך אקראי לקוביה 2
         Toast.makeText(context,"${dice1Value}, ${dice2Value}, dice",Toast.LENGTH_SHORT).show()
         loadDiceImages(context)  // טוען את התמונות החדשות
+        movePosition(dice1Value,dice2Value,0)
 
         invalidate()  // עדכון הציור
     }
@@ -213,18 +216,19 @@ class BackgammonBoardView @JvmOverloads constructor(
         var positionOne= boardState[fromPosition+dice1Value]
         var positionTwo= boardState[fromPosition+dice2Value]
         var positionThree= boardState[fromPosition+dice1Value+dice2Value]
-        val threePosition = arrayOfNulls<Pair>(3)
+        val threePosition = Array<Int>(3, { -1 })
+        Log.d(TAG,"options 1: ${positionOne.toString()},${positionTwo.toString()},${positionThree.toString()}")
 
         if (positionOne.first < 2 || boardState[fromPosition].second == positionOne.second) {
-            threePosition[0] = positionOne
+            threePosition[0] = fromPosition+dice1Value
         }
-        if (positionTwo.first < 2 || boardState[fromPosition].second == positionOne.second) {
-            threePosition[1] = positionTwo
+        if (positionTwo.first < 2 || boardState[fromPosition].second == positionTwo.second) {
+            threePosition[1] = fromPosition+dice2Value
         }
-        if (positionThree.first < 2 || boardState[fromPosition].second == positionOne.second) {
-            threePosition[2] = positionThree
+        if (positionThree.first < 2 || boardState[fromPosition].second == positionThree.second) {
+            threePosition[2] = fromPosition+dice1Value+dice2Value
         }
-
+        Log.d(TAG,"options:${threePosition[0].toString()}, ${threePosition[1].toString()} , ${threePosition[2].toString()}")
 
     }
 
