@@ -52,7 +52,6 @@ class BackgammonBoardView @JvmOverloads constructor(
         dice2Value = (1..6).random()  // הגרלת ערך אקראי לקוביה 2
         Toast.makeText(context,"${dice1Value}, ${dice2Value}, dice",Toast.LENGTH_SHORT).show()
         loadDiceImages(context)  // טוען את התמונות החדשות
-        movePosition(dice1Value,dice2Value,0)
 
         invalidate()  // עדכון הציור
     }
@@ -212,24 +211,45 @@ class BackgammonBoardView @JvmOverloads constructor(
         }
     }
 
-    private fun movePosition(dice1Value: Int, dice2Value: Int, fromPosition: Int, ) {
-        var positionOne= boardState[fromPosition+dice1Value]
-        var positionTwo= boardState[fromPosition+dice2Value]
-        var positionThree= boardState[fromPosition+dice1Value+dice2Value]
+    private fun movePosition(dice1Value: Int, dice2Value: Int, fromPosition: Int,isWhite:Boolean ): Array<Int>{
+        var positionOne = Pair(-1,false)
+        var positionTwo = Pair(-1,false)
+        var positionThree = Pair(-1,false)
         val threePosition = Array<Int>(3, { -1 })
+        if(isWhite) {
+             positionOne = boardState[fromPosition + dice1Value]
+             positionTwo = boardState[fromPosition + dice2Value]
+             positionThree = boardState[fromPosition + dice1Value + dice2Value]
+            if (positionOne.first < 2 || boardState[fromPosition].second == positionOne.second) {
+                threePosition[0] = fromPosition+dice1Value
+            }
+            if (positionTwo.first < 2 || boardState[fromPosition].second == positionTwo.second) {
+                threePosition[1] = fromPosition+dice2Value
+            }
+            if (positionThree.first < 2 || boardState[fromPosition].second == positionThree.second) {
+                threePosition[2] = fromPosition+dice1Value+dice2Value
+            }
+        }
+        else{
+             positionOne = boardState[fromPosition - dice1Value]
+             positionTwo = boardState[fromPosition - dice2Value]
+             positionThree = boardState[fromPosition - dice1Value - dice2Value]
+            if (positionOne.first < 2 || boardState[fromPosition].second == positionOne.second) {
+                threePosition[0] = fromPosition-dice1Value
+            }
+            if (positionTwo.first < 2 || boardState[fromPosition].second == positionTwo.second) {
+                threePosition[1] = fromPosition-dice2Value
+            }
+            if (positionThree.first < 2 || boardState[fromPosition].second == positionThree.second) {
+                threePosition[2] = fromPosition-dice1Value-dice2Value
+            }
+        }
+
         Log.d(TAG,"options 1: ${positionOne.toString()},${positionTwo.toString()},${positionThree.toString()}")
 
-        if (positionOne.first < 2 || boardState[fromPosition].second == positionOne.second) {
-            threePosition[0] = fromPosition+dice1Value
-        }
-        if (positionTwo.first < 2 || boardState[fromPosition].second == positionTwo.second) {
-            threePosition[1] = fromPosition+dice2Value
-        }
-        if (positionThree.first < 2 || boardState[fromPosition].second == positionThree.second) {
-            threePosition[2] = fromPosition+dice1Value+dice2Value
-        }
-        Log.d(TAG,"options:${threePosition[0].toString()}, ${threePosition[1].toString()} , ${threePosition[2].toString()}")
 
+        Log.d(TAG,"options:${threePosition[0].toString()}, ${threePosition[1].toString()} , ${threePosition[2].toString()}")
+        return threePosition
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -243,6 +263,7 @@ class BackgammonBoardView @JvmOverloads constructor(
                 if(y<565||y>800) {
                     val clickedPosition = getPositionFromTouch(x, y)
                     handleTouch(clickedPosition)
+
                 }
                 else{
                     if(x>2400&&x<2970){
@@ -254,7 +275,7 @@ class BackgammonBoardView @JvmOverloads constructor(
                 // אם יש חייל שנבחר, הזז אותו
                 selectedCheckerPosition?.let { selectedPosition ->
                     val targetPosition = getPositionFromTouch(x, y)
-                    moveChecker(selectedPosition, targetPosition)
+                    moveChecker(selectedPosition, targetPosition,movePosition(dice1Value,dice2Value,selectedPosition,boardState[selectedPosition].second))
                 }
             }
         }
@@ -282,58 +303,60 @@ class BackgammonBoardView @JvmOverloads constructor(
         }
     }
 
-    private fun moveChecker(fromPosition: Int, toPosition: Int) {
-        val (count, isWhite) = boardState[fromPosition]
-        if (count > 0) {
-            // הסר את החייל מהמיקום הנבחר
-            //Toast.makeText(context,"${count}",Toast.LENGTH_SHORT).show()
-            //Toast.makeText(context,"${boardState[fromPosition].first}",Toast.LENGTH_SHORT).show()
-            // הוסף אותו למיקום החדש
-            if (isWhite)
-            {
-                if(boardState[toPosition+1].second!=isWhite){
-                    if(boardState[toPosition+1].first<2) {
-                        boardState[fromPosition] = Pair(count-1, isWhite)
-                        if (boardState[toPosition+1].first==1) {
-                            boardState[24] = Pair(boardState[24].first + 1, !isWhite)
+    private fun moveChecker(fromPosition: Int, toPosition: Int,options:Array<Int>) {
+        if (options.contains(toPosition)){
+            val (count, isWhite) = boardState[fromPosition]
+            if (count > 0) {
+                // הסר את החייל מהמיקום הנבחר
+                //Toast.makeText(context,"${count}",Toast.LENGTH_SHORT).show()
+                //Toast.makeText(context,"${boardState[fromPosition].first}",Toast.LENGTH_SHORT).show()
+                // הוסף אותו למיקום החדש
+                if (isWhite)
+                {
+                    if(boardState[toPosition+1].second!=isWhite){
+                        if(boardState[toPosition+1].first<2) {
+                            boardState[fromPosition] = Pair(count-1, isWhite)
+                            if (boardState[toPosition+1].first==1) {
+                                boardState[24] = Pair(boardState[24].first + 1, !isWhite)
+                            }
+                            boardState[toPosition + 1] = Pair(1, isWhite)
                         }
-                        boardState[toPosition + 1] = Pair(1, isWhite)
+                        else{
+                            Toast.makeText(context,"You cant go their you stupid little bit...",Toast.LENGTH_SHORT).show()
+                        }
                     }
                     else{
-                        Toast.makeText(context,"You cant go their you stupid little bit...",Toast.LENGTH_SHORT).show()
+                        boardState[fromPosition] = Pair(count-1, isWhite)
+
+                        val newCount = boardState[toPosition+1].first + 1
+                        boardState[toPosition+1] = Pair(newCount, isWhite)
                     }
+
                 }
                 else{
-                    boardState[fromPosition] = Pair(count-1, isWhite)
-
-                    val newCount = boardState[toPosition+1].first + 1
-                    boardState[toPosition+1] = Pair(newCount, isWhite)
-                }
-
-            }
-            else{
-                if(boardState[toPosition-1].second!=isWhite){
-                    if(boardState[toPosition-1].first<2) {
-                        boardState[fromPosition] = Pair(count-1, isWhite)
-                        if (boardState[toPosition-1].first==1) {
-                            boardState[25] = Pair(boardState[25].first + 1, !isWhite)
+                    if(boardState[toPosition-1].second!=isWhite){
+                        if(boardState[toPosition-1].first<2) {
+                            boardState[fromPosition] = Pair(count-1, isWhite)
+                            if (boardState[toPosition-1].first==1) {
+                                boardState[25] = Pair(boardState[25].first + 1, !isWhite)
+                            }
+                            boardState[toPosition - 1] = Pair(1, isWhite)
                         }
-                        boardState[toPosition - 1] = Pair(1, isWhite)
+                        else{
+                            Toast.makeText(context,"You cant go their you stupid little bit...",Toast.LENGTH_SHORT).show()
+                        }
                     }
                     else{
-                        Toast.makeText(context,"You cant go their you stupid little bit...",Toast.LENGTH_SHORT).show()
+                        boardState[fromPosition] = Pair(count-1, isWhite)
+
+                        val newCount = boardState[toPosition-1].first + 1
+                        boardState[toPosition-1] = Pair(newCount, isWhite)
                     }
-                }
-                else{
-                    boardState[fromPosition] = Pair(count-1, isWhite)
 
-                    val newCount = boardState[toPosition-1].first + 1
-                    boardState[toPosition-1] = Pair(newCount, isWhite)
                 }
-
+                invalidate() // עדכון הציור
             }
-            invalidate() // עדכון הציור
+            selectedCheckerPosition = null
         }
-        selectedCheckerPosition = null
     }
 }
