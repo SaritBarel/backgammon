@@ -74,11 +74,10 @@ class BackgammonBoardView @JvmOverloads constructor(
         }
 
         initialDiceRoll = true
-
         loadDiceImages(context)
 
         // הצג את המהלכים הזמינים
-        val movesMessage = "קוביות: ${dice1Value}, ${dice2Value}, מהלכים זמינים: ${availableMoves.joinToString(", ")}"
+        val movesMessage = "קוביות: ${dice1Value}, ${dice2Value}"
         Toast.makeText(context, movesMessage, Toast.LENGTH_SHORT).show()
 
         invalidate()
@@ -152,28 +151,46 @@ class BackgammonBoardView @JvmOverloads constructor(
 
     private fun getValidMoves(fromPosition: Int, isWhite: Boolean): List<Int> {
         val validMoves = mutableListOf<Int>()
-
-        // בדיקת כל אחד מהמהלכים האפשריים
-        for (moveValue in availableMoves) {
-            // חישוב המיקום החדש בהתאם לצבע השחקן
-            val targetPosition = if (isWhite) fromPosition + moveValue else fromPosition - moveValue
-
-            // וידוא שהמיקום בגבולות הלוח
-            if (targetPosition in 0..23) {
-                val targetSpot = boardState[targetPosition]
-
-                // בדיקה האם המהלך חוקי
-                if (targetSpot.first == 0) {
-                    // המקום ריק - מהלך חוקי
-                    validMoves.add(targetPosition)
-                } else if (targetSpot.second == isWhite) {
-                    // יש חיילים בצבע של השחקן - מהלך חוקי
-                    validMoves.add(targetPosition)
-                } else if (targetSpot.first == 1 && targetSpot.second != isWhite) {
-                    // יש רק חייל אחד של היריב - אפשר להכות
-                    validMoves.add(targetPosition)
+        
+        // במקרה של דאבל, נחשב את כל האפשרויות
+        if (dice1Value == dice2Value) {
+            val baseMove = dice1Value
+            // מאפשר מהלכים של 1-4 פעמים את המספר
+            for (multiplier in 1..4) {
+                val moveValue = baseMove * multiplier
+                val targetPosition = if (isWhite) fromPosition + moveValue else fromPosition - moveValue
+                
+                if (targetPosition in 0..23) {
+                    val targetSpot = boardState[targetPosition]
+                    if (targetSpot.first <= 1 || targetSpot.second == isWhite) {
+                        validMoves.add(targetPosition)
+                    }
                 }
-                // אם יש יותר מחייל אחד של היריב - המהלך לא חוקי
+            }
+        } else {
+            // טיפול במקרה הרגיל (לא דאבל)
+            // בדיקת כל אחד מהמהלכים הבודדים
+            for (moveValue in availableMoves) {
+                val targetPosition = if (isWhite) fromPosition + moveValue else fromPosition - moveValue
+                if (targetPosition in 0..23) {
+                    val targetSpot = boardState[targetPosition]
+                    if (targetSpot.first <= 1 || targetSpot.second == isWhite) {
+                        validMoves.add(targetPosition)
+                    }
+                }
+            }
+
+            // בדיקת האפשרות לשלב את שני המספרים
+            if (availableMoves.size >= 2) {
+                val combinedMove = availableMoves[0] + availableMoves[1]
+                val targetPosition = if (isWhite) fromPosition + combinedMove else fromPosition - combinedMove
+                
+                if (targetPosition in 0..23) {
+                    val targetSpot = boardState[targetPosition]
+                    if (targetSpot.first <= 1 || targetSpot.second == isWhite) {
+                        validMoves.add(targetPosition)
+                    }
+                }
             }
         }
 
@@ -407,9 +424,7 @@ class BackgammonBoardView @JvmOverloads constructor(
 
             // הצג את המהלכים האפשריים לחייל זה
             val validMoves = getValidMoves(position, isWhite)
-            if (validMoves.isNotEmpty()) {
-                Toast.makeText(context, "מהלכים אפשריים: ${validMoves.joinToString(", ")}", Toast.LENGTH_SHORT).show()
-            } else {
+            if (validMoves.isEmpty()) {
                 Toast.makeText(context, "אין מהלכים אפשריים לחייל זה", Toast.LENGTH_SHORT).show()
             }
         } else if (count > 0 && isWhite != isWhiteTurn) {
@@ -437,73 +452,87 @@ class BackgammonBoardView @JvmOverloads constructor(
         }
     }
 
-    private fun moveChecker(fromPosition: Int, toPosition: Int,options:Array<Int>) {
-        Log.d(TAG,"to ${toPosition}}")
+    private fun moveChecker(fromPosition: Int, toPosition: Int, options: Array<Int>) {
+        Log.d(TAG, "to ${toPosition}}")
         if (options.contains(toPosition)) {
             val (count, isWhite) = boardState[fromPosition]
             if (count > 0) {
-                // כל הקוד הקיים שלך להזזת החייל...
-
-                // אחרי שההזזה הסתיימה בהצלחה, הוסף רק את זה:
-                switchTurn()
-
-                invalidate() // עדכון הציור
-            }
-            selectedCheckerPosition = null
-        }
-
-        if (options.contains(toPosition)){
-
-            val (count, isWhite) = boardState[fromPosition]
-            if (count > 0) {
-                // הסר את החייל מהמיקום הנבחר
-                //Toast.makeText(context,"${count}",Toast.LENGTH_SHORT).show()
-                //Toast.makeText(context,"${boardState[fromPosition].first}",Toast.LENGTH_SHORT).show()
-                // הוסף אותו למיקום החדש
-                if (isWhite)
-                {
-                    if(boardState[toPosition].second!=isWhite){
-                        if(boardState[toPosition].first<2) {
-                            boardState[fromPosition] = Pair(count-1, isWhite)
-                            if (boardState[toPosition].first==1) {
+                val moveDistance = Math.abs(toPosition - fromPosition)
+                
+                if (dice1Value == dice2Value) {
+                    // במקרה של דאבל
+                    val baseMove = dice1Value
+                    val movesUsed = moveDistance / baseMove
+                    
+                    if (moveDistance % baseMove == 0 && movesUsed <= availableMoves.size) {
+                        // מסיר את מספר המהלכים שנוצלו
+                        repeat(movesUsed) {
+                            availableMoves.removeAt(0)
+                        }
+                    } else {
+                        return
+                    }
+                } else {
+                    // טיפול במקרה הרגיל
+                    if (moveDistance == dice1Value + dice2Value && availableMoves.size >= 2) {
+                        availableMoves.clear()
+                    } else {
+                        val moveIndex = availableMoves.indexOf(moveDistance)
+                        if (moveIndex != -1) {
+                            availableMoves.removeAt(moveIndex)
+                        } else {
+                            return
+                        }
+                    }
+                }
+                
+                // מבצע את המהלך עצמו
+                if (isWhite) {
+                    if (boardState[toPosition].second != isWhite) {
+                        if (boardState[toPosition].first < 2) {
+                            boardState[fromPosition] = Pair(count - 1, isWhite)
+                            if (boardState[toPosition].first == 1) {
                                 boardState[24] = Pair(boardState[24].first + 1, !isWhite)
                             }
-                            boardState[toPosition ] = Pair(1, isWhite)
+                            boardState[toPosition] = Pair(1, isWhite)
+                        } else {
+                            Toast.makeText(context, "לא ניתן לבצע מהלך זה", Toast.LENGTH_SHORT).show()
+                            return
                         }
-                        else{
-                            Toast.makeText(context,"You cant go their you stupid little bit...",Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    else{
-                        boardState[fromPosition] = Pair(count-1, isWhite)
-
+                    } else {
+                        boardState[fromPosition] = Pair(count - 1, isWhite)
                         val newCount = boardState[toPosition].first + 1
                         boardState[toPosition] = Pair(newCount, isWhite)
                     }
-
-                }
-                else{
-                    if(boardState[toPosition].second!=isWhite){
-                        if(boardState[toPosition].first<2) {
-                            boardState[fromPosition] = Pair(count-1, isWhite)
-                            if (boardState[toPosition].first==1) {
+                } else {
+                    // לוגיקה דומה עבור שחקן שחור
+                    if (boardState[toPosition].second != isWhite) {
+                        if (boardState[toPosition].first < 2) {
+                            boardState[fromPosition] = Pair(count - 1, isWhite)
+                            if (boardState[toPosition].first == 1) {
                                 boardState[25] = Pair(boardState[25].first + 1, !isWhite)
                             }
-                            boardState[toPosition ] = Pair(1, isWhite)
+                            boardState[toPosition] = Pair(1, isWhite)
+                        } else {
+                            Toast.makeText(context, "לא ניתן לבצע מהלך זה", Toast.LENGTH_SHORT).show()
+                            return
                         }
-                        else{
-                            Toast.makeText(context,"You cant go their you stupid little bit...",Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    else{
-                        boardState[fromPosition] = Pair(count-1, isWhite)
-
+                    } else {
+                        boardState[fromPosition] = Pair(count - 1, isWhite)
                         val newCount = boardState[toPosition].first + 1
                         boardState[toPosition] = Pair(newCount, isWhite)
                     }
-
                 }
-                invalidate() // עדכון הציור
+
+                // בודק אם נגמרו כל המהלכים האפשריים
+                if (availableMoves.isEmpty()) {
+                    switchTurn()
+                } else {
+                    // עדיין נשארו מהלכים
+                    Toast.makeText(context, "נשארו עוד ${availableMoves.size} מהלכים", Toast.LENGTH_SHORT).show()
+                }
+                
+                invalidate()
             }
             selectedCheckerPosition = null
         }
@@ -520,3 +549,4 @@ class BackgammonBoardView @JvmOverloads constructor(
     }
 
 }
+
