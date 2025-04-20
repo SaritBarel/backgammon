@@ -633,9 +633,7 @@ class BackgammonBoardView @JvmOverloads constructor(
                 // בדיקה אם נגמרו כל המהלכים האפשריים
                 if (availableMoves.isEmpty()) {
                     switchTurn()
-                } else {
-                    // עדיין נשארו מהלכים
-                    Toast.makeText(context, "נשארו עוד ${availableMoves.size} מהלכים", Toast.LENGTH_SHORT).show()
+
                 }
 
                 invalidate()
