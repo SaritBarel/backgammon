@@ -131,6 +131,9 @@ class BackgammonBoardView @JvmOverloads constructor(
         color = Color.BLACK
         isAntiAlias = true
     }
+    data class Move(val from: Int, val to: Int, val eatenChecker: Pair<Int, Boolean>?, val usedDice: List<Int>)
+
+    private val moveHistory = mutableListOf<Move>()
 
     // מערך המייצג את מצב הלוח - מספר החיילים בכל עמודה והצבע שלהם
     private val boardState = Array(29) { position ->
