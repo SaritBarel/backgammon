@@ -1056,4 +1056,95 @@ class BackgammonBoardView @JvmOverloads constructor(
         waitForDoneButton = false
         invalidate()
     }
+
+    /**
+     * Get the current board state as a Map that can be stored in Firebase
+     */
+    fun getBoardState(): BoardState {
+        // TODO: Create a proper implementation based on your actual board state
+        // This is just a placeholder
+        return BoardState()
+    }
+
+    /**
+     * Update the board state from a Map received from Firebase
+     */
+    fun updateBoardState(boardState: Map<String, Any>) {
+        // TODO: Implement this method to update your board view from a map
+        invalidate() // Redraw the board after updating
+    }
+
+    /**
+     * Get information about the last move that was played
+     */
+    fun getLastMove(): LastMove {
+        // TODO: Create a proper implementation based on your actual move tracking
+        // This is just a placeholder
+        return LastMove()
+    }
+
+    /**
+     * Update the last move from data received from Firebase
+     */
+    fun updateLastMove(lastMove: Map<String, Any>) {
+        // TODO: Implement this method to show the last move on your board
+    }
+
+    /**
+     * Enable or disable user interaction with the board
+     */
+    fun setInteractionEnabled(enabled: Boolean) {
+        // TODO: Implement logic to enable/disable user interaction
+        // For example:
+        isEnabled = enabled
+    }
+
+    /**
+     * Check if the game is over (e.g., all pieces of one player are removed)
+     */
+    fun isGameOver(): Boolean {
+        // TODO: Implement proper game over check
+        return false // Placeholder
+    }
+
+    /**
+     * Data classes to represent board state and moves
+     */
+    data class BoardState(
+        val positions: MutableMap<Int, Position> = mutableMapOf()
+    ) {
+        fun toMap(): Map<String, Any> {
+            val result = mutableMapOf<String, Any>()
+            positions.forEach { (key, value) -> 
+                result["position_$key"] = value.toMap()
+            }
+            return result
+        }
+    }
+
+    data class Position(
+        val pieces: Int = 0,
+        val player: Int = 0
+    ) {
+        fun toMap(): Map<String, Any> {
+            return mapOf(
+                "pieces" to pieces,
+                "player" to player
+            )
+        }
+    }
+
+    data class LastMove(
+        val fromPosition: Int = 0,
+        val toPosition: Int = 0,
+        val player: Int = 0
+    ) {
+        fun toMap(): Map<String, Any> {
+            return mapOf(
+                "fromPosition" to fromPosition,
+                "toPosition" to toPosition,
+                "player" to player
+            )
+        }
+    }
 }

@@ -9,6 +9,4 @@
     <string name="forgot_password">Forgot Password</string>
     <string name="full_name">Full Name</string>
     <string name="default_web_client_id">202948134881-dlhg8ilv0qgk2sc8sdjcgr70u0v99dkg.apps.googleusercontent.com</string>
-    <string name="default_notification_channel_id">default_channel</string>
-    <string name="game_notification_channel_id">game_channel</string>
 </resources>

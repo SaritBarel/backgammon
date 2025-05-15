@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
+        android:name=".BackgammonApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -26,24 +30,12 @@
             android:theme="@style/Theme.Backgammon">
         </activity>
         <activity
-            android:name=".ui.GameListActivity"
-            android:exported="false"
-            android:label="Online Games">
-        </activity>
+            android:name=".GamesListActivity"
+            android:exported="false" />
         <activity
-            android:name=".ui.OnlineGameActivity"
+            android:name=".GameActivity"
             android:exported="false"
-            android:label="Online Game">
-        </activity>
-        
-        <!-- Add FCM service for game notifications -->
-        <service
-            android:name=".service.GameMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

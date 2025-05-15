@@ -8,10 +8,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.backgammon.ui.GameListActivity
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var backgammonBoardView: BackgammonBoardView
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,29 +18,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                // v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
         
-        // Initialize game board
-        backgammonBoardView = findViewById(R.id.backgammonBoard)
-        
-        // Connect BACK button
-        val backButton = findViewById<ImageButton>(R.id.backButton)
-        backButton.setOnClickListener {
-            backgammonBoardView.undoLastMove()
+        // Find Play button
+        val playButton = findViewById<Button>(R.id.btnPlay)
+        playButton.setOnClickListener {
+            // Open the games list activity
+            startActivity(Intent(this, GamesListActivity::class.java))
         }
         
-        // Connect DONE button
-        val doneButton = findViewById<ImageButton>(R.id.doneButton)
-        doneButton.setOnClickListener {
-            backgammonBoardView.finishTurn()
-        }
-        
-        // Connect ONLINE button
-        val onlineButton = findViewById<Button>(R.id.btnOnline)
-        onlineButton?.setOnClickListener {
-            startActivity(Intent(this, GameListActivity::class.java))
+        // Find Sign Out button
+        val signOutButton = findViewById<Button>(R.id.btnSignOut)
+        signOutButton.setOnClickListener {
+            // Sign out the user and return to login screen
+            FirebaseAuth.getInstance().signOut()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }
     }
 }

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -46,25 +47,24 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    
     // Firebase Authentication
-    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     
-    // Firebase Firestore - for online game data
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    
-    // Firebase Realtime Database - alternative to Firestore
+    // Firebase Realtime Database
     implementation("com.google.firebase:firebase-database-ktx")
     
-    // Firebase Cloud Messaging - for notifications
-    implementation("com.google.firebase:firebase-messaging-ktx")
+    // Firebase Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
     
-    // RecyclerView - for game list
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    // Firebase Analytics
+    implementation("com.google.firebase:firebase-analytics-ktx")
     
-    // SwipeRefreshLayout - for refreshing game list
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
+    // Better debugging for Firebase
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
