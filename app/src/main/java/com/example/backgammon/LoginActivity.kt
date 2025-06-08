@@ -2,64 +2,101 @@ package com.example.backgammon
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.backgammon.databinding.ActivityLoginBinding
-import com.google.android.material.tabs.TabLayoutMediator
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 
 class LoginActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityLoginBinding
-    private lateinit var auth: FirebaseAuth
-    private val TAG = "LoginActivity"
+    
+    private lateinit var userManager: UserManager
+    private lateinit var scoreManager: ScoreManager
+    private lateinit var nameEditText: EditText
+    private lateinit var loginButton: Button
+    private lateinit var playerStatsTextView: TextView
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_login)
         
-        // Initialize Firebase Auth
-        try {
-            auth = Firebase.auth
-            Log.d(TAG, "Firebase Auth initialized successfully")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize Firebase Auth: ${e.message}")
-            Toast.makeText(this, "Failed to initialize Firebase: ${e.message}", Toast.LENGTH_LONG).show()
+        userManager = UserManager(this)
+        scoreManager = ScoreManager()
+        
+        // בדיקה אם המשתמש כבר מחובר
+        if (userManager.isLoggedIn()) {
+            goToMainActivity()
+            return
         }
         
-        // Set up ViewPager adapter
-        val viewPagerAdapter = AuthViewPagerAdapter(this)
-        binding.viewPager.adapter = viewPagerAdapter
-        
-        // Connect TabLayout with ViewPager
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> getString(R.string.login)
-                1 -> getString(R.string.register)
-                else -> null
-            }
-        }.attach()
+        initViews()
+        setupClickListeners()
     }
     
-    override fun onStart() {
-        super.onStart()
-        
-        try {
-            // Check if user is already signed in
-            val currentUser = auth.currentUser
-            Log.d(TAG, "Current user: ${currentUser?.email}")
-            
-            if (currentUser != null && false) { // Temporarily disable auto-redirect
-                // If user is already signed in, redirect to main screen
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
+    private fun initViews() {
+        nameEditText = findViewById(R.id.nameEditText)
+        loginButton = findViewById(R.id.loginButton)
+        playerStatsTextView = findViewById(R.id.playerStatsTextView)
+    }
+    
+    private fun setupClickListeners() {
+        loginButton.setOnClickListener {
+            val playerName = nameEditText.text.toString().trim()
+            if (playerName.isNotEmpty()) {
+                if (playerName.length >= 2) {
+                    loginPlayer(playerName)
+                } else {
+                    Toast.makeText(this, "השם חייב להכיל לפחות 2 תווים", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "אנא הכניסי את השם שלך", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking current user: ${e.message}")
         }
+        
+        nameEditText.setOnEditorActionListener { _, _, _ ->
+            loginButton.performClick()
+            true
+        }
+    }
+    
+    private fun loginPlayer(playerName: String) {
+        loginButton.isEnabled = false
+        loginButton.text = "מתחבר..."
+        
+        // קודם נטען את הנתונים של השחקן
+        scoreManager.getPlayerScore(playerName) { playerScore ->
+            runOnUiThread {
+                if (playerScore != null) {
+                    // שמירת השם ב-SharedPreferences
+                    userManager.savePlayerName(playerName)
+                    
+                    // הצגת הנתונים הנוכחיים
+                    val statsText = "שלום $playerName!\n" +
+                            "ניצחונות: ${playerScore.wins}\n" +
+                            "הפסדים: ${playerScore.losses}\n" +
+                            "גביעים: ${playerScore.trophies}"
+                    
+                    playerStatsTextView.text = statsText
+                    playerStatsTextView.visibility = TextView.VISIBLE
+                    
+                    Toast.makeText(this, "התחברת בהצלחה!", Toast.LENGTH_SHORT).show()
+                    
+                    // מעבר למשחק אחרי שניה
+                    nameEditText.postDelayed({
+                        goToMainActivity()
+                    }, 1500)
+                } else {
+                    Toast.makeText(this, "שגיאה בחיבור לשרת", Toast.LENGTH_SHORT).show()
+                    loginButton.isEnabled = true
+                    loginButton.text = "כניסה"
+                }
+            }
+        }
+    }
+    
+    private fun goToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 } 

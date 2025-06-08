@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -35,9 +34,6 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        viewBinding = true
-    }
 }
 
 dependencies {
@@ -48,23 +44,9 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-    
-    // Firebase Authentication
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
-    
-    // Firebase Realtime Database
-    implementation("com.google.firebase:firebase-database-ktx")
-    
-    // Firebase Firestore
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    
-    // Firebase Analytics
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    
-    // Better debugging for Firebase
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-firestore")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

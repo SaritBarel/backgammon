@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.backgammon">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
+    
     <application
-        android:name=".BackgammonApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,26 +15,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Backgammon"
         tools:targetApi="31">
+        
+        <!-- Login Activity - הפעילות הראשית -->
         <activity
             android:name=".LoginActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Main Activity - המשחק -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:theme="@style/Theme.Backgammon">
-        </activity>
-        <activity
-            android:name=".GamesListActivity"
-            android:exported="false" />
-        <activity
-            android:name=".GameActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="landscape" />
+            
     </application>
 
 </manifest>
